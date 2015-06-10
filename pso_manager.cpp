@@ -91,7 +91,7 @@ namespace ParticleSwarmOptimization {
 		return mSocialWeight;
 	}
 
-	double Manager::uniform(const int low, const int high) {
+	double Manager::uniform(const double low, const double high) {
 		return 0.0;
 	}
 

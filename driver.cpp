@@ -6,6 +6,7 @@ const size_t MAX_ITERATIONS = 100;
 
 // Driver
 int main(int argc, char * argv[]) {
+	
 	ParticleSwarmOptimization::Manager man( NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
 	man.estimate();
 

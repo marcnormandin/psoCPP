@@ -45,7 +45,7 @@ namespace ParticleSwarmOptimization {
 
 		ParticleId genUniqueId ();
 
-		double uniform(const int low = -1, const int high = 1);
+		double uniform(const double low = -1, const double high = 1);
 
 		// interface to Particle
 		Position randomPosition();
