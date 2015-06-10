@@ -25,8 +25,11 @@
 #define RNG_H_
 
 #include <climits> // ULONG_MAX
-#include <gsl/gsl_rng.h>
+
 #include <gsl/gsl_randist.h>
+
+#include <gsl/gsl_rng.h>
+
 #include <iostream>
 
 // Seeds for GNU GSL random number generators

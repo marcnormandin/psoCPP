@@ -1,10 +1,14 @@
 #include <functional>
 
+#include "rng.h"
+
 #include "pso_manager.h"
 
 #include "pso_particle.h"
 
 #include <iostream>
+
+#include <cstddef>
 
 namespace ParticleSwarmOptimization {
 
@@ -15,6 +19,10 @@ namespace ParticleSwarmOptimization {
 			Particle* p = new Particle ( this, Particle::State(randomPosition(), randomVelocity()), genUniqueId() );
 			mParticles.push_back( p );
 		}
+
+		// Init the RNG
+		const gslseed_t seed = 0;
+		mRng = new RandomNumberGenerator( seed );
 	}
 
 	Manager::~Manager () {
@@ -23,6 +31,8 @@ namespace ParticleSwarmOptimization {
 			delete mParticles.back();
 			mParticles.pop_back();
 		}
+
+		delete mRng;
 	}
 
 	void Manager::estimate () {
@@ -92,7 +102,7 @@ namespace ParticleSwarmOptimization {
 	}
 
 	double Manager::uniform(const double low, const double high) {
-		return 0.0;
+		return mRng->uniform(low, high);
 	}
 
 	ParticleId Manager::genUniqueId () {

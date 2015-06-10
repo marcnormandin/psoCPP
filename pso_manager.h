@@ -4,6 +4,8 @@
 #include <vector>
 #include "pso_types.h"
 
+class RandomNumberGenerator;
+
 namespace ParticleSwarmOptimization {
 
 	class Particle;
@@ -64,6 +66,8 @@ namespace ParticleSwarmOptimization {
 		Weight mCognitiveWeight;
 
 		size_t mIterationCount;
+
+		RandomNumberGenerator* mRng;
 	};
 
 }; // namespace
