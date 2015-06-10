@@ -60,6 +60,12 @@ namespace ParticleSwarmOptimization {
 		return mIterationCount;
 	}
 
+	// virtual void computeFitnesses() = 0;
+	
+	void Manager::updateFitnesses () {
+
+	}
+
 	size_t Manager::numDimensions () const {
 		return mNumDimensions;
 	}

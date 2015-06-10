@@ -28,9 +28,12 @@ namespace ParticleSwarmOptimization {
 		size_t iteration() const;
 		
 		// This should compute a fitness function
-		virtual void updateFitnesses () {
+
+		virtual void computeFitnesses () {
 
 		}
+
+		void updateFitnesses ();
 
 		size_t numDimensions () const;
 
