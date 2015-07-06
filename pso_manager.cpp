@@ -56,6 +56,9 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Manager::iterate () {
+		// Update the topology
+		mTopology->update();
+		
 		// iterate each particle
 		std::for_each(mParticles.begin(), mParticles.end(), std::mem_fun(&Particle::iterate));
 
