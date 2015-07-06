@@ -28,22 +28,18 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Particle::evolveVelocity () {
-		//const Position& socialBest = mManager->socialBest( *this );	
+		const Position& socialBest = mManager->socialBest( *this );
 		for (Velocity::size_type d = 0; d < mCurrent.velocity.size(); ++d) {
 			// inertia term
-			VecCom vInertia = mManager->inertiaWeight() * mCurrent.velocity[d];
+			const VecCom vInertia = mManager->inertiaWeight() * mCurrent.velocity[d];
 
 			// social term
-			// !Fixme
-			/*
-			double u1 = mManager->uniform(0,1);
-			VecCom vSocial = mManager->socialWeight() * u1 * ( socialBest[d] - mPosition[d] );
-			*/
-			VecCom vSocial = 0.0;
+			const double u1 = mManager->uniform(0,1);
+			const VecCom vSocial = mManager->socialWeight() * u1 * ( socialBest[d] - mCurrent.position[d] );
 
 			// cognitive term
-			double u2 = mManager->uniform(0,1);
-			VecCom vCognitive = mManager->cognitiveWeight() * u2 * ( mBest.position[d] - mCurrent.position[d] );
+			const double u2 = mManager->uniform(0,1);
+			const VecCom vCognitive = mManager->cognitiveWeight() * u2 * ( mBest.position[d] - mCurrent.position[d] );
 
 			mCurrent.velocity[d] = ( vInertia + vSocial + vCognitive );
 		}		
@@ -59,15 +55,15 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Particle::applyVelocityConstraint () {
-
+		// !ToDo
 	}
 
 	void Particle::applyPositionConstraint () {
-
+		// !ToDo
 	}
 
 	void Particle::applyPositionAndVelocityConstraint () {
-
+		// !ToDo
 	}
 
 	// Sets the fitness for the current position
@@ -76,6 +72,14 @@ namespace ParticleSwarmOptimization {
 		mCurrent.fitness = fitness;
 
 		updateBest ();
+	}
+
+	const Particle::State& Particle::best() const {
+		return mBest;
+	}
+
+	const Particle::State& Particle::current() const {
+		return mCurrent;
 	}
 
 	void Particle::updateBest () {

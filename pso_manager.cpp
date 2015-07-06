@@ -6,6 +6,8 @@
 
 #include "pso_particle.h"
 
+#include "pso_topology.h"
+
 #include <iostream>
 
 #include <cstddef>
@@ -14,15 +16,18 @@ namespace ParticleSwarmOptimization {
 
 	Manager::Manager ( const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
 	: mNumDimensions(numDimensions), mMaxIterations(maxIterations), mIterationCount(0) {
+		// Init the RNG
+		const gslseed_t seed = 0;
+		mRng = new RandomNumberGenerator( seed );
+
+		mTopology = new RingTopology (this);
+
+		// Initialize the particles
 		mParticles.reserve( numParticles );
 		for (size_t i = 0; i < numParticles; i++) {
 			Particle* p = new Particle ( this, Particle::State(randomPosition(), randomVelocity()), genUniqueId() );
 			mParticles.push_back( p );
 		}
-
-		// Init the RNG
-		const gslseed_t seed = 0;
-		mRng = new RandomNumberGenerator( seed );
 	}
 
 	Manager::~Manager () {
@@ -40,6 +45,14 @@ namespace ParticleSwarmOptimization {
 			std::cout << "Manager::Iteration #" << iteration() << " ...\n\n";
 			iterate ();
 		}
+	}
+
+	size_t Manager::numParticles() const {
+		return mParticles.size();
+	}
+	
+	const Particle& Manager::particle(const ParticleId pid) const {
+		return *mParticles.at(pid);
 	}
 
 	void Manager::iterate () {
@@ -60,10 +73,8 @@ namespace ParticleSwarmOptimization {
 		return mIterationCount;
 	}
 
-	// virtual void computeFitnesses() = 0;
-	
 	void Manager::updateFitnesses () {
-
+		// !ToDo
 	}
 
 	size_t Manager::numDimensions () const {
@@ -71,13 +82,10 @@ namespace ParticleSwarmOptimization {
 	}
 
 	// Returns the social best position for the given particle
-	/*
 	const Position& Manager::socialBest (const Particle& asker) {
-		unsigned int id = asker.id();
-		
 		// Depending on the topology, return the particles social best
-		return Position( mNumDimensions );
-	}*/
+		return mTopology->socialBest( asker );
+	}
 
 	Position Manager::randomPosition() {
 		Position pos( numDimensions() );

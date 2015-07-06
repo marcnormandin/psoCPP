@@ -28,6 +28,10 @@ class Particle {
 		// Sets the fitness for the current position
 		void updateFitness (const Fitness fitness);
 
+		const State& best() const;
+
+		const State& current() const;
+
 	protected:
 		void evolveVelocity ();
 

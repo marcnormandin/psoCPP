@@ -9,7 +9,7 @@ namespace ParticleSwarmOptimization {
 	typedef Vector Position;
 	typedef Vector Velocity;
 	typedef double Weight;
-	typedef unsigned int ParticleId;
+	typedef size_t ParticleId;
 	typedef double Fitness;
 }; // namespace
 

@@ -9,6 +9,7 @@ class RandomNumberGenerator;
 namespace ParticleSwarmOptimization {
 
 	class Particle;
+	class Topology;
 
 	class Manager {
 		friend class Particle;
@@ -19,6 +20,10 @@ namespace ParticleSwarmOptimization {
 		virtual ~Manager ();
 
 		void estimate ();
+
+		size_t numParticles() const;
+
+		const Particle& particle(const ParticleId pid) const;
 
 	protected:
 		void iterate ();
@@ -38,9 +43,7 @@ namespace ParticleSwarmOptimization {
 		size_t numDimensions () const;
 
 		// Returns the social best position for the given particle
-		/*
 		const Position& socialBest (const Particle& asker );
-		*/
 
 		Weight inertiaWeight() const;
 
@@ -69,6 +72,8 @@ namespace ParticleSwarmOptimization {
 		Weight mCognitiveWeight;
 
 		size_t mIterationCount;
+
+		Topology* mTopology;
 
 		RandomNumberGenerator* mRng;
 	};
