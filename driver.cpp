@@ -1,8 +1,8 @@
 #include "pso.h"
 
-const size_t NUM_DIMENSIONS = 2;
-const size_t NUM_PARTICLES = 30;
-const size_t MAX_ITERATIONS = 100;
+const size_t NUM_DIMENSIONS = 1;
+const size_t NUM_PARTICLES = 2;
+const size_t MAX_ITERATIONS = 2;
 
 // Driver
 int main(int argc, char * argv[]) {
