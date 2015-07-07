@@ -8,6 +8,7 @@
 
 namespace ParticleSwarmOptimization {
 
+	// Interface to particle communication topologies
 	class Topology {
 	public:
 		Topology (const Manager* const manager)
@@ -25,9 +26,10 @@ namespace ParticleSwarmOptimization {
 		const Manager* const mManager;
 	};
 
-	class ParticleFitnessCmp {
+	// Used by the Topology classes to compare two particle fitnesses
+	class ParticleBestFitnessCmp {
 	public:
-		ParticleFitnessCmp(const Manager* const manager) :
+		ParticleBestFitnessCmp(const Manager* const manager) :
 		mManager(manager) {}
 
 		bool operator()(const ParticleId a, const ParticleId b) const {
@@ -40,7 +42,7 @@ namespace ParticleSwarmOptimization {
 		const Manager* const mManager;
 	};
 
-	// Interface to particle communication topologies
+	// Standard Ring topology involving K neighbors
 	class RingTopology : public Topology {
 	public:
 		RingTopology (const Manager* const manager)
@@ -62,7 +64,7 @@ namespace ParticleSwarmOptimization {
 			std::vector<ParticleId> neighbors = getNeighborParticleIds( asker.id() );
 
 			// get the neighbor with the best fitness
-			const ParticleId pid = *std::max_element(neighbors.begin(), neighbors.end(), ParticleFitnessCmp(manager()));
+			const ParticleId pid = *std::min_element(neighbors.begin(), neighbors.end(), ParticleBestFitnessCmp(manager()));
 
 			// return the best neighbors best position
 			return manager()->particle(pid).best().position;

@@ -2,6 +2,7 @@
 #include "pso_manager.h"
 #include <limits>
 #include <iostream> 
+#include <cmath>
 
 namespace ParticleSwarmOptimization {
 
@@ -24,7 +25,7 @@ namespace ParticleSwarmOptimization {
 		// apply combined constraint
 		applyPositionAndVelocityConstraint();
 
-		std::cout << "I'm #" << id() << " and I was just iterated! SWEET!\n";
+		//std::cout << "I'm #" << id() << " and I was just iterated! SWEET!\n";
 	}
 
 	void Particle::evolveVelocity () {
@@ -55,7 +56,17 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Particle::applyVelocityConstraint () {
-		// !ToDo
+		const double MAX_DIM_SPEED = 0.5;
+
+		for (size_t i = 0; i < mCurrent.velocity.size(); i++) {
+			if (std::fabs(mCurrent.velocity[i]) > MAX_DIM_SPEED) {
+				if (mCurrent.velocity[i] < 0) {
+					mCurrent.velocity[i] = -1.0 * MAX_DIM_SPEED;
+				} else {
+					mCurrent.velocity[i] = MAX_DIM_SPEED;
+				}
+			}
+		}
 	}
 
 	void Particle::applyPositionConstraint () {
@@ -66,10 +77,27 @@ namespace ParticleSwarmOptimization {
 		// !ToDo
 	}
 
+	bool isPositionWithinBounds(const Position& pos) {
+		for (size_t i = 0; i < pos.size(); i++) {
+			if ( (pos[i] < -1) || (pos[i] > 1) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	// Sets the fitness for the current position
 	// The manager calls this
 	void Particle::updateFitness (const Fitness fitness) {
 		mCurrent.fitness = fitness;
+
+		// !Fixme
+		// We are getting rid of the evaluation if outside the bounds
+		if (!isPositionWithinBounds(current().position)) {
+			// Set it to the worst possible value
+			mCurrent.fitness = std::numeric_limits<Fitness>::max();
+		}
 
 		updateBest ();
 	}
@@ -83,7 +111,7 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Particle::updateBest () {
-		if (mCurrent.fitness > mBest.fitness) {
+		if (mCurrent.fitness < mBest.fitness) {
 			mBest = mCurrent;
 		}
 	}

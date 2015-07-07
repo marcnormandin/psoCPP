@@ -15,11 +15,15 @@ namespace ParticleSwarmOptimization {
 		friend class Particle;
 
 	public:
-		Manager ( const size_t numDimensions, const size_t numParticles, const size_t maxIterations );
+		Manager (const size_t numDimensions, const size_t numParticles, const size_t maxIterations );
 
 		virtual ~Manager ();
 
+		void loadStandardWeights();
+		
 		void estimate ();
+
+		Position getEstimate() const;
 
 		size_t numParticles() const;
 
@@ -32,13 +36,10 @@ namespace ParticleSwarmOptimization {
 
 		size_t iteration() const;
 		
-		// This should compute a fitness function
+		// This should evaluate a fitness function, e.g. z = f(x,y)
+		virtual Fitness evaluateFunction (const Position& ) = 0;
 
-		virtual void computeFitnesses () {
-
-		}
-
-		void updateFitnesses ();
+		void updateParticleFitnesses ();
 
 		size_t numDimensions () const;
 

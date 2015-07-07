@@ -22,6 +22,8 @@ namespace ParticleSwarmOptimization {
 
 		mTopology = new RingTopology (this);
 
+		loadStandardWeights();
+
 		// Initialize the particles
 		mParticles.reserve( numParticles );
 		for (size_t i = 0; i < numParticles; i++) {
@@ -40,12 +42,32 @@ namespace ParticleSwarmOptimization {
 		delete mRng;
 	}
 
+	void Manager::loadStandardWeights() {
+		mInertiaWeight = 0.72984;
+		mSocialWeight = 1.496172;
+		mCognitiveWeight = 1.496172;
+	}
+
 	void Manager::estimate () {
 		while ( keepLooping() ) {
-			std::cout << "Manager::Iteration #" << iteration() << " ...\n\n";
 			iterate ();
 		}
 	}
+
+	Position Manager::getEstimate() const {
+		class ParticleBestFitnessCmp {
+		public:
+			bool operator()(const Particle* const a, const Particle* const b) const {
+				const Fitness fita = a->best().fitness;
+				const Fitness fitb = b->best().fitness;
+				return fita < fitb;
+			}
+		};
+
+		const Particle* p = *std::min_element(mParticles.begin(), mParticles.end(), ParticleBestFitnessCmp());
+		return p->best().position;
+	}
+
 
 	size_t Manager::numParticles() const {
 		return mParticles.size();
@@ -63,7 +85,7 @@ namespace ParticleSwarmOptimization {
 		std::for_each(mParticles.begin(), mParticles.end(), std::mem_fun(&Particle::iterate));
 
 		// Update each particle's fitness
-		updateFitnesses();
+		updateParticleFitnesses();
 
 		mIterationCount++;
 	}
@@ -76,8 +98,23 @@ namespace ParticleSwarmOptimization {
 		return mIterationCount;
 	}
 
-	void Manager::updateFitnesses () {
-		// !ToDo
+	void Manager::updateParticleFitnesses () {
+		std::vector<Position> positions;
+		for (int i = 0; i < mParticles.size(); i++) {
+			positions.push_back( mParticles[i]->current().position );
+		}
+
+		// Call evaluate function for each particle's position, save the fitness
+		std::vector<Fitness> fitnesses;
+		for (int i = 0; i < positions.size(); i++) {
+			Fitness fit = evaluateFunction( positions[i] );
+			fitnesses.push_back( fit );
+		}
+
+		// Update the particle's new fitness value
+		for (int i = 0; i < fitnesses.size(); i++) {
+			mParticles[i]->updateFitness( fitnesses[i] );
+		}
 	}
 
 	size_t Manager::numDimensions () const {
