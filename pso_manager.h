@@ -20,7 +20,7 @@ namespace ParticleSwarmOptimization {
 		virtual ~Manager ();
 
 		void loadStandardWeights();
-		
+
 		void estimate ();
 
 		Position getEstimate() const;
@@ -37,7 +37,7 @@ namespace ParticleSwarmOptimization {
 		size_t iteration() const;
 		
 		// This should evaluate a fitness function, e.g. z = f(x,y)
-		virtual Fitness evaluateFunction (const Position& ) = 0;
+		virtual std::vector<Fitness> evaluateFunction (const std::vector<Position>& positions ) = 0;
 
 		void updateParticleFitnesses ();
 

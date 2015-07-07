@@ -105,11 +105,7 @@ namespace ParticleSwarmOptimization {
 		}
 
 		// Call evaluate function for each particle's position, save the fitness
-		std::vector<Fitness> fitnesses;
-		for (int i = 0; i < positions.size(); i++) {
-			Fitness fit = evaluateFunction( positions[i] );
-			fitnesses.push_back( fit );
-		}
+		std::vector<Fitness> fitnesses = evaluateFunction( positions );
 
 		// Update the particle's new fitness value
 		for (int i = 0; i < fitnesses.size(); i++) {

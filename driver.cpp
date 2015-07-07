@@ -50,7 +50,16 @@ public:
 	}
 
 protected:
-    virtual ParticleSwarmOptimization::Fitness evaluateFunction (const ParticleSwarmOptimization::Position& pos) {
+	virtual std::vector<ParticleSwarmOptimization::Fitness> evaluateFunction(const std::vector<ParticleSwarmOptimization::Position>& positions) {
+		std::vector<ParticleSwarmOptimization::Fitness> fitnesses;
+		for (size_t i = 0; i < positions.size(); i++) {
+			fitnesses.push_back( evaluateFunction( positions[i] ) );
+		}
+
+		return fitnesses;
+	}
+
+    ParticleSwarmOptimization::Fitness evaluateFunction (const ParticleSwarmOptimization::Position& pos) {
 		return mTestFunction(pos[0], pos[1]);
 	}
 
