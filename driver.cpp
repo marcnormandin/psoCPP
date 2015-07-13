@@ -50,17 +50,25 @@ public:
 	}
 
 protected:
+	virtual void iterate () {
+		ParticleSwarmOptimization::Manager::iterate();
+
+		// Print the current best estimate
+		ParticleSwarmOptimization::Position pos = this->getEstimate();
+		std::cout << "(" << pos[0] << ", " << pos[1] << ")\n";
+	}
+
 	// The manager calls this function for each interation of the PSO estimation procedure.
 	virtual std::vector<ParticleSwarmOptimization::Fitness> evaluateFunction(const std::vector<ParticleSwarmOptimization::Position>& positions) {
 		std::vector<ParticleSwarmOptimization::Fitness> fitnesses;
 		for (size_t i = 0; i < positions.size(); i++) {
-			fitnesses.push_back( evaluateTestFunction( positions[i] ) );
+			fitnesses.push_back( f_of_x( positions[i] ) );
 		}
 
 		return fitnesses;
 	}
 
-    ParticleSwarmOptimization::Fitness evaluateTestFunction (const ParticleSwarmOptimization::Position& pos) {
+    ParticleSwarmOptimization::Fitness f_of_x (const ParticleSwarmOptimization::Position& pos) {
 		return mTestFunction(pos[0], pos[1]);
 	}
 

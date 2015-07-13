@@ -40,7 +40,7 @@ namespace ParticleSwarmOptimization {
 		bool isEnabledMaxSpeedPerDimension() const;
 
 	protected:
-		void iterate ();
+		virtual void iterate ();
 
 		bool keepLooping();
 
