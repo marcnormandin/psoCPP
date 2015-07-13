@@ -29,6 +29,12 @@ namespace ParticleSwarmOptimization {
 
 		const Particle& particle(const ParticleId pid) const;
 
+		double maxSpeedPerDimension() const;
+		void setMaxSpeedPerDimension(const double newSpeed);
+		void enableMaxSpeedPerDimension();
+		void disableMaxSpeedPerDimension();
+		bool isEnabledMaxSpeedPerDimension() const;
+
 	protected:
 		void iterate ();
 
@@ -57,8 +63,8 @@ namespace ParticleSwarmOptimization {
 		double uniform(const double low = -1, const double high = 1);
 
 		// interface to Particle
-		Position randomPosition();
-		Velocity randomVelocity();
+		Position 	randomPosition();
+		Velocity 	randomVelocity();
 
 	private:
 		Manager (const Manager&);
@@ -73,6 +79,9 @@ namespace ParticleSwarmOptimization {
 		Weight mCognitiveWeight;
 
 		size_t mIterationCount;
+
+		double mMaxSpeedPerDimension;
+		bool mIsEnabledMaxSpeedPerDimension;
 
 		Topology* mTopology;
 

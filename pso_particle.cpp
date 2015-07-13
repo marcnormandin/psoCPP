@@ -54,14 +54,16 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Particle::applyVelocityConstraint () {
-		const double MAX_DIM_SPEED = 0.5;
+		if (mManager->isEnabledMaxSpeedPerDimension()) {
+			const double MAX_DIM_SPEED = mManager->maxSpeedPerDimension();
 
-		for (size_t i = 0; i < mCurrent.velocity.size(); i++) {
-			if (std::fabs(mCurrent.velocity[i]) > MAX_DIM_SPEED) {
-				if (mCurrent.velocity[i] < 0) {
-					mCurrent.velocity[i] = -1.0 * MAX_DIM_SPEED;
-				} else {
-					mCurrent.velocity[i] = MAX_DIM_SPEED;
+			for (size_t i = 0; i < mCurrent.velocity.size(); i++) {
+				if (std::fabs(mCurrent.velocity[i]) > MAX_DIM_SPEED) {
+					if (mCurrent.velocity[i] < 0) {
+						mCurrent.velocity[i] = -1.0 * MAX_DIM_SPEED;
+					} else {
+						mCurrent.velocity[i] = MAX_DIM_SPEED;
+					}
 				}
 			}
 		}
@@ -97,6 +99,7 @@ namespace ParticleSwarmOptimization {
 		// done ultimately in MPI and we want a standard
 		// MPI topology.
 		if (!isPositionWithinBounds(current().position)) {
+			// !Fixme This should be an option from the Manager class
 			// Set it to the worst possible value
 			mCurrent.fitness = std::numeric_limits<Fitness>::max();
 		}

@@ -9,8 +9,8 @@ const size_t NUM_DIMENSIONS = 2;
 const size_t NUM_PARTICLES = 20;
 const size_t MAX_ITERATIONS = 100;
 
-const double TRUE_X = -0.2;
-const double TRUE_Y = 0.4;
+const double TRUE_X = -0.1;
+const double TRUE_Y = -0.25;
 
 class AckleyFunction
 {

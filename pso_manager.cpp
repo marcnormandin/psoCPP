@@ -33,6 +33,7 @@ namespace ParticleSwarmOptimization {
 		mTopology = new RingTopology (this);
 
 		loadStandardWeights();
+		setMaxSpeedPerDimension(0.5);
 
 		// Initialize the particles
 		mParticles.reserve( numParticles );
@@ -139,6 +140,28 @@ namespace ParticleSwarmOptimization {
 		}
 		return vel;
 	}
+
+	double Manager::maxSpeedPerDimension() const {
+		return mMaxSpeedPerDimension;
+	}
+
+	void Manager::setMaxSpeedPerDimension(const double newSpeed) {
+		//!Fixme make sure value is positive
+		mMaxSpeedPerDimension = newSpeed;
+	}
+
+	void Manager::enableMaxSpeedPerDimension() {
+		mIsEnabledMaxSpeedPerDimension = true;
+	}
+
+	void Manager::disableMaxSpeedPerDimension() {
+		mIsEnabledMaxSpeedPerDimension = false;
+	}
+
+	bool Manager::isEnabledMaxSpeedPerDimension() const {
+		return mIsEnabledMaxSpeedPerDimension;
+	}
+
 
 	Weight Manager::inertiaWeight() const {
 		return mInertiaWeight;
