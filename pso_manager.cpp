@@ -30,6 +30,7 @@ namespace ParticleSwarmOptimization {
 
 		mTopology = new RingTopology (this);
 
+		// default settings
 		loadStandardWeights();
 		setMaxSpeedPerDimension(0.5);
 		enableMaxSpeedPerDimension();
@@ -53,9 +54,9 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Manager::loadStandardWeights() {
-		mInertiaWeight = 0.72984;
-		mSocialWeight = 1.496172;
-		mCognitiveWeight = 1.496172;
+		setInertiaWeight(0.72984);
+		setSocialWeight(1.496172);
+		setCognitiveWeight(1.496172);
 	}
 
 	void Manager::estimate () {
@@ -166,12 +167,24 @@ namespace ParticleSwarmOptimization {
 		return mInertiaWeight;
 	}
 
+	void Manager::setInertiaWeight(const Weight newWeight) {
+		mInertiaWeight = newWeight;
+	}
+
 	Weight Manager::cognitiveWeight() const {
 		return mCognitiveWeight;
 	}
 
+	void Manager::setCognitiveWeight(const Weight newWeight) {
+		mCognitiveWeight = newWeight;
+	}
+
 	Weight Manager::socialWeight() const {
 		return mSocialWeight;
+	}
+
+	void Manager::setSocialWeight(const Weight newWeight) {
+		mSocialWeight = newWeight;
 	}
 
 	double Manager::uniform(const double low, const double high) {

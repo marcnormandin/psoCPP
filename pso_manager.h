@@ -57,10 +57,13 @@ namespace ParticleSwarmOptimization {
 		const Position& socialBest (const Particle& asker );
 
 		Weight inertiaWeight() const;
+		void setInertiaWeight(const Weight newWeight);
 
 		Weight cognitiveWeight() const;
+		void setCognitiveWeight(const Weight newWeight);
 
 		Weight socialWeight() const;
+		void setSocialWeight(const Weight newWeight);
 
 		ParticleId genUniqueId ();
 
