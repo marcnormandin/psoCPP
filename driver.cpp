@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 
 #include "pso.h"
 
@@ -9,7 +10,8 @@ const size_t NUM_DIMENSIONS = 2;
 const size_t NUM_PARTICLES = 20;
 const size_t MAX_ITERATIONS = 100;
 
-const double TRUE_X = -0.1;
+const double RANGE = 4.0;
+const double TRUE_X = 2.9;
 const double TRUE_Y = -0.25;
 
 class AckleyFunction
@@ -17,13 +19,52 @@ class AckleyFunction
 public:
     // Formula found from:
     // http://anvilofcode.wordpress.com/2012/01/21/optimizing-the-ackleys-function/
-    AckleyFunction(const double muX = 0.0, const double muY = 0.0)
-        : mTrueX(muX), mTrueY(muY)
+    AckleyFunction(const double range = 1.0, const double muX = 0.0, const double muY = 0.0)
+        : mRange(range), mTrueX(muX), mTrueY(muY)
     {
     }
 
-    double operator()(const double x, const double y) const
+    bool test() const {
+    	if (
+    		(convert(-1.0) != -mRange) ||
+    		(convert(1.0) != mRange) ||
+    		(convert(0.0) != 0.0) ) {
+    		return false;
+    	}
+
+    	return true;
+    }
+
+    double min() const {
+    	return -1.0*mRange;
+    }
+
+    double max() const {
+    	return 1.0*mRange;
+    }
+
+    double convert(const double pso_coord) const {
+    	return convert(min(), max(), pso_coord);
+    }
+
+    // Converts pso coordinates to function coordinates
+    static double convert(const double min, const double max, const double pso_coord) {
+    	const double func_coord = 0.5*max*(1.0+pso_coord) + 0.5*min*(1.0-pso_coord);
+
+    	std::cout << pso_coord << " -> " << func_coord << "\n";
+
+    	return func_coord;
+    }
+
+    double operator()(const double pso_x, const double pso_y) const
     {
+    	const double x = convert(pso_x);
+    	const double y = convert(pso_y);
+
+    	if (x < min() || x > max() || y < min() || y > max()) {
+    		return std::numeric_limits<ParticleSwarmOptimization::Fitness>::max();
+    	}
+
         const double termOne = 20.0 + gsl_sf_exp(1.0);
 
         const double termTwoArg = -0.5 * (gsl_pow_2(x - mTrueX) + gsl_pow_2(y - mTrueY));
@@ -38,15 +79,29 @@ public:
 private:
     double mTrueX;
     double mTrueY;
+    double mRange;
 };
 
 
-class MyManager : public ParticleSwarmOptimization::Manager {
+class MyManager : private ParticleSwarmOptimization::Manager {
 public:
 	MyManager(const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
 	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations),
-	  mTestFunction(TRUE_X, TRUE_Y) {
+	  mTestFunction(RANGE,TRUE_X, TRUE_Y) {
+	  	if(!mTestFunction.test()) {
+	  		throw std::runtime_error("Test function failed self-diagnostic test.\n");
+	  	}
+	}
 
+	void estimate() {
+		ParticleSwarmOptimization::Manager::estimate();
+	}
+
+	 ParticleSwarmOptimization::Position getEstimate() const {
+		ParticleSwarmOptimization::Position pos = ParticleSwarmOptimization::Manager::getEstimate();
+		pos[0] = mTestFunction.convert(pos[0]);
+		pos[1] = mTestFunction.convert(pos[1]);
+		return pos;
 	}
 
 protected:
@@ -55,7 +110,7 @@ protected:
 
 		// Print the current best estimate
 		ParticleSwarmOptimization::Position pos = this->getEstimate();
-		std::cout << "(" << pos[0] << ", " << pos[1] << ")\n";
+		std::cout << "Iteration #" << iteration() << " best is (" << pos[0] << ", " << pos[1] << ")\n";
 	}
 
 	// The manager calls this function for each interation of the PSO estimation procedure.
@@ -76,15 +131,20 @@ private:
 	AckleyFunction mTestFunction;
 };
 
-// Driver
-int main(int argc, char * argv[]) {
+// Driverin(int argc, char * argv[]) {
 	
-	const gslseed_t seed = 0;
-	MyManager man( seed, NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
-	man.estimate();
-	ParticleSwarmOptimization::Position est = man.getEstimate();
-	std::cout << "true x = " << TRUE_X << ", and estimated x = " << est[0] << std::endl;
-	std::cout << "true y = " << TRUE_Y << ", and estimated y = " << est[1] << std::endl;
+int main(int argc, char* argv[]) {
+	try {
+		const gslseed_t seed = 0;
+		MyManager man( seed, NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
+		man.estimate();
+		ParticleSwarmOptimization::Position est = man.getEstimate();
+		std::cout << "true x = " << TRUE_X << ", and estimated x = " << est[0] << std::endl;
+		std::cout << "true y = " << TRUE_Y << ", and estimated y = " << est[1] << std::endl;
+	} catch(const std::exception& e) {
+		std::cerr << "ERROR: " << e.what() << std::endl;
+		return -1;
+	}
 
 	return 0;
 }
