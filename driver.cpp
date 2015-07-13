@@ -43,8 +43,8 @@ private:
 
 class MyManager : public ParticleSwarmOptimization::Manager {
 public:
-	MyManager(const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
-	: ParticleSwarmOptimization::Manager(numDimensions, numParticles, maxIterations),
+	MyManager(const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
+	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations),
 	  mTestFunction(TRUE_X, TRUE_Y) {
 
 	}
@@ -71,7 +71,8 @@ private:
 // Driver
 int main(int argc, char * argv[]) {
 	
-	MyManager man( NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
+	const gslseed_t seed = 0;
+	MyManager man( seed, NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
 	man.estimate();
 	ParticleSwarmOptimization::Position est = man.getEstimate();
 	std::cout << "true x = " << TRUE_X << ", and estimated x = " << est[0] << std::endl;

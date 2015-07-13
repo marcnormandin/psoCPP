@@ -24,10 +24,8 @@ namespace ParticleSwarmOptimization {
 	};
 
 
-	Manager::Manager ( const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
+	Manager::Manager ( const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
 	: mNumDimensions(numDimensions), mMaxIterations(maxIterations), mIterationCount(0) {
-		// Init the RNG
-		const gslseed_t seed = 0;
 		mRng = new RandomNumberGenerator( seed );
 
 		mTopology = new RingTopology (this);

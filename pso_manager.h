@@ -6,6 +6,10 @@
 
 class RandomNumberGenerator;
 
+// Seeds for GNU GSL random number generators
+// This is defined in rng.h
+typedef unsigned long int gslseed_t;
+
 namespace ParticleSwarmOptimization {
 
 	class Particle;
@@ -15,7 +19,7 @@ namespace ParticleSwarmOptimization {
 		friend class Particle;
 
 	public:
-		Manager (const size_t numDimensions, const size_t numParticles, const size_t maxIterations );
+		Manager (const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations );
 
 		virtual ~Manager ();
 
