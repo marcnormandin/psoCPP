@@ -91,7 +91,11 @@ namespace ParticleSwarmOptimization {
 		mCurrent.fitness = fitness;
 
 		// !Fixme
-		// We are getting rid of the evaluation if outside the bounds
+		// We are getting rid of the evaluation if outside the bounds.
+		// This is an acceptable compromise between performance
+		// and simplicity since the function evaluations are
+		// done ultimately in MPI and we want a standard
+		// MPI topology.
 		if (!isPositionWithinBounds(current().position)) {
 			// Set it to the worst possible value
 			mCurrent.fitness = std::numeric_limits<Fitness>::max();
