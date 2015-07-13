@@ -14,6 +14,16 @@
 
 namespace ParticleSwarmOptimization {
 
+	class ParticleBestFitnessCmpp {
+		public:
+			bool operator()(const Particle* const a, const Particle* const b) const {
+				const Fitness fita = a->best().fitness;
+				const Fitness fitb = b->best().fitness;
+				return fita < fitb;
+			}
+	};
+
+
 	Manager::Manager ( const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
 	: mNumDimensions(numDimensions), mMaxIterations(maxIterations), mIterationCount(0) {
 		// Init the RNG
@@ -55,16 +65,7 @@ namespace ParticleSwarmOptimization {
 	}
 
 	Position Manager::getEstimate() const {
-		class ParticleBestFitnessCmp {
-		public:
-			bool operator()(const Particle* const a, const Particle* const b) const {
-				const Fitness fita = a->best().fitness;
-				const Fitness fitb = b->best().fitness;
-				return fita < fitb;
-			}
-		};
-
-		const Particle* p = *std::min_element(mParticles.begin(), mParticles.end(), ParticleBestFitnessCmp());
+		const Particle* p = *std::min_element(mParticles.begin(), mParticles.end(), ParticleBestFitnessCmpp());
 		return p->best().position;
 	}
 
