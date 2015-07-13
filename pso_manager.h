@@ -39,6 +39,8 @@ namespace ParticleSwarmOptimization {
 		void disableMaxSpeedPerDimension();
 		bool isEnabledMaxSpeedPerDimension() const;
 
+		void resetParticles();
+		
 	protected:
 		virtual void iterate ();
 

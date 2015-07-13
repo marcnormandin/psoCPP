@@ -61,6 +61,12 @@ namespace ParticleSwarmOptimization {
 		}
 	}
 
+	void Manager::resetParticles() {
+		const size_t np = numParticles();
+		destroyParticles();
+		createParticles(np);
+	}
+
 	void Manager::loadStandardWeights() {
 		setInertiaWeight(0.72984);
 		setSocialWeight(1.496172);
