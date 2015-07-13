@@ -50,6 +50,7 @@ public:
 	}
 
 protected:
+	// The manager calls this function for each interation of the PSO estimation procedure.
 	virtual std::vector<ParticleSwarmOptimization::Fitness> evaluateFunction(const std::vector<ParticleSwarmOptimization::Position>& positions) {
 		std::vector<ParticleSwarmOptimization::Fitness> fitnesses;
 		for (size_t i = 0; i < positions.size(); i++) {

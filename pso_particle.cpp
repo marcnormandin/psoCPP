@@ -24,8 +24,6 @@ namespace ParticleSwarmOptimization {
 
 		// apply combined constraint
 		applyPositionAndVelocityConstraint();
-
-		//std::cout << "I'm #" << id() << " and I was just iterated! SWEET!\n";
 	}
 
 	void Particle::evolveVelocity () {
