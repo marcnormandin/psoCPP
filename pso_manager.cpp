@@ -34,6 +34,7 @@ namespace ParticleSwarmOptimization {
 
 		loadStandardWeights();
 		setMaxSpeedPerDimension(0.5);
+		enableMaxSpeedPerDimension();
 
 		// Initialize the particles
 		mParticles.reserve( numParticles );
