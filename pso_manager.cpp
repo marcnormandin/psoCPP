@@ -35,6 +35,16 @@ namespace ParticleSwarmOptimization {
 		setMaxSpeedPerDimension(0.5);
 		enableMaxSpeedPerDimension();
 
+		createParticles( numParticles );
+	}
+
+	Manager::~Manager () {
+		destroyParticles();
+
+		delete mRng;
+	}
+
+	void Manager::createParticles(const size_t numParticles) {
 		// Initialize the particles
 		mParticles.reserve( numParticles );
 		for (size_t i = 0; i < numParticles; i++) {
@@ -43,14 +53,12 @@ namespace ParticleSwarmOptimization {
 		}
 	}
 
-	Manager::~Manager () {
+	void Manager::destroyParticles() {
 		// Delete the particles
 		while (!mParticles.empty()) {
 			delete mParticles.back();
 			mParticles.pop_back();
 		}
-
-		delete mRng;
 	}
 
 	void Manager::loadStandardWeights() {

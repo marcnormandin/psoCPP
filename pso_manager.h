@@ -73,6 +73,9 @@ namespace ParticleSwarmOptimization {
 		Position 	randomPosition();
 		Velocity 	randomVelocity();
 
+		void createParticles(const size_t numParticles);
+		void destroyParticles();
+
 	private:
 		Manager (const Manager&);
 		void operator=(const Manager&);
