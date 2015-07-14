@@ -108,10 +108,15 @@ protected:
 	virtual void iterate () {
 		ParticleSwarmOptimization::Manager::iterate();
 
-		// Print the current best estimate
-		ParticleSwarmOptimization::Position pos = this->getEstimate();
-		std::cout << "Iteration #" << iteration() << " best is (" << pos[0] << ", " << pos[1] << ")\n";
+		// Get the best estimate for this iteration step
+		ParticleSwarmOptimization::Position estimate = this->getEstimate();
+
+        recordEstimate(estimate);
 	}
+
+    void recordEstimate(const ParticleSwarmOptimization::Position& estimate) {
+        std::cout << "Iteration #" << iteration() << " best is (" << estimate[0] << ", " << estimate[1] << ")\n";
+    }
 
 	// The manager calls this function for each interation of the PSO estimation procedure.
 	virtual std::vector<ParticleSwarmOptimization::Fitness> evaluateFunction(const std::vector<ParticleSwarmOptimization::Position>& positions) {
