@@ -6,9 +6,10 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
 
+const size_t NUM_TRIALS = 10;
 const size_t NUM_DIMENSIONS = 2;
 const size_t NUM_PARTICLES = 20;
-const size_t MAX_ITERATIONS = 100;
+const size_t MAX_ITERATIONS = 50;
 
 const double RANGE = 4.0;
 const double TRUE_X = 2.9;
@@ -51,7 +52,7 @@ public:
     static double convert(const double min, const double max, const double pso_coord) {
     	const double func_coord = 0.5*max*(1.0+pso_coord) + 0.5*min*(1.0-pso_coord);
 
-    	std::cout << pso_coord << " -> " << func_coord << "\n";
+    	//std::cout << pso_coord << " -> " << func_coord << "\n";
 
     	return func_coord;
     }
@@ -85,37 +86,52 @@ private:
 
 class MyManager : private ParticleSwarmOptimization::Manager {
 public:
-	MyManager(const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
-	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations),
+	MyManager(const gslseed_t seed, const size_t numTrials, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
+	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations), mNumTrials(numTrials),
 	  mTestFunction(RANGE,TRUE_X, TRUE_Y) {
 	  	if(!mTestFunction.test()) {
 	  		throw std::runtime_error("Test function failed self-diagnostic test.\n");
 	  	}
+
+        mCurrentTrial = 0;
 	}
 
-	void estimate() {
-		ParticleSwarmOptimization::Manager::estimate();
-	}
-
-	 ParticleSwarmOptimization::Position getEstimate() const {
-		ParticleSwarmOptimization::Position pos = ParticleSwarmOptimization::Manager::getEstimate();
-		pos[0] = mTestFunction.convert(pos[0]);
-		pos[1] = mTestFunction.convert(pos[1]);
-		return pos;
+	void performAnalysis() {
+        for (mCurrentTrial = 0; mCurrentTrial < mNumTrials; mCurrentTrial++) {
+            ParticleSwarmOptimization::Manager::reset();
+            ParticleSwarmOptimization::Manager::estimate();
+            ParticleSwarmOptimization::Position estimate = getEstimate();
+            recordTrialEstimate( estimate );
+        }
 	}
 
 protected:
+    ParticleSwarmOptimization::Position getEstimate() const {
+        ParticleSwarmOptimization::Position pos = ParticleSwarmOptimization::Manager::getEstimate();
+        pos[0] = mTestFunction.convert(pos[0]);
+        pos[1] = mTestFunction.convert(pos[1]);
+        return pos;
+    }
+
+    size_t trial() const {
+        return mCurrentTrial;
+    }
+
 	virtual void iterate () {
 		ParticleSwarmOptimization::Manager::iterate();
 
 		// Get the best estimate for this iteration step
 		ParticleSwarmOptimization::Position estimate = this->getEstimate();
 
-        recordEstimate(estimate);
+        recordIterationEstimate(estimate);
 	}
 
-    void recordEstimate(const ParticleSwarmOptimization::Position& estimate) {
-        std::cout << "Iteration #" << iteration() << " best is (" << estimate[0] << ", " << estimate[1] << ")\n";
+    void recordTrialEstimate(const ParticleSwarmOptimization::Position& estimate) {
+        std::cout << "Trial #" << trial() << " best is (" << estimate[0] << ", " << estimate[1] << ")\n";
+    }
+
+    void recordIterationEstimate(const ParticleSwarmOptimization::Position& estimate) {
+        //std::cout << "Iteration #" << iteration() << " best is (" << estimate[0] << ", " << estimate[1] << ")\n";
     }
 
 	// The manager calls this function for each interation of the PSO estimation procedure.
@@ -134,16 +150,18 @@ protected:
 
 private:
 	AckleyFunction mTestFunction;
+    size_t mNumTrials;
+    size_t mCurrentTrial;
 };
 	
 int main(int argc, char* argv[]) {
 	try {
 		const gslseed_t seed = 0;
-		MyManager man( seed, NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
-		man.estimate();
-		ParticleSwarmOptimization::Position est = man.getEstimate();
-		std::cout << "true x = " << TRUE_X << ", and estimated x = " << est[0] << std::endl;
-		std::cout << "true y = " << TRUE_Y << ", and estimated y = " << est[1] << std::endl;
+		MyManager man( seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
+		man.performAnalysis();
+		//ParticleSwarmOptimization::Position est = man.getEstimate();
+		std::cout << "true x = " << TRUE_X << "\n"; //<< ", and estimated x = " << est[0] << std::endl;
+		std::cout << "true y = " << TRUE_Y << "\n"; //, and estimated y = " << est[1] << std::endl;
 	} catch(const std::exception& e) {
 		std::cerr << "ERROR: " << e.what() << std::endl;
 		return -1;

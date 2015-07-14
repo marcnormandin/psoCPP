@@ -8,6 +8,8 @@
 
 #include "pso_topology.h"
 
+#include "pso_inertiascaling.h"
+
 #include <iostream>
 
 #include <cstddef>
@@ -25,10 +27,16 @@ namespace ParticleSwarmOptimization {
 
 
 	Manager::Manager ( const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
-	: mNumDimensions(numDimensions), mMaxIterations(maxIterations), mIterationCount(0) {
+	: mNumDimensions(numDimensions), mMaxIterations(maxIterations), mIterationCount(0), mInertia(0) {
 		mRng = new RandomNumberGenerator( seed );
 
 		mTopology = new RingTopology (this);
+
+		/*
+		const Weight start = 0.72984;
+		const Weight end = 0.1;
+		mInertia = new LinearInertiaScaling(start, end, maxIterations);
+		*/
 
 		// default settings
 		loadStandardWeights();
@@ -65,10 +73,24 @@ namespace ParticleSwarmOptimization {
 		const size_t np = numParticles();
 		destroyParticles();
 		createParticles(np);
+        
+	}
+
+	void Manager::reset() {
+		// Reset the iteration counter
+		mIterationCount = 0;
+
+		resetParticles();
 	}
 
 	void Manager::loadStandardWeights() {
-		setInertiaWeight(0.72984);
+		if (mInertia != 0) {
+			delete mInertia;
+		}
+
+		mInertia = new NoInertiaScaling(0.72984);
+
+		//setInertiaWeight(0.72984);
 		setSocialWeight(1.496172);
 		setCognitiveWeight(1.496172);
 	}
@@ -89,6 +111,10 @@ namespace ParticleSwarmOptimization {
 		return mParticles.size();
 	}
 	
+	size_t Manager::numIterations() const {
+		return mMaxIterations;
+	}
+
 	const Particle& Manager::particle(const ParticleId pid) const {
 		return *mParticles.at(pid);
 	}
@@ -178,13 +204,14 @@ namespace ParticleSwarmOptimization {
 
 
 	Weight Manager::inertiaWeight() const {
-		return mInertiaWeight;
+		return mInertia->weight();
 	}
 
+/*
 	void Manager::setInertiaWeight(const Weight newWeight) {
 		mInertiaWeight = newWeight;
 	}
-
+*/
 	Weight Manager::cognitiveWeight() const {
 		return mCognitiveWeight;
 	}

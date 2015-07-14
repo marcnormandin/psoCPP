@@ -14,6 +14,7 @@ namespace ParticleSwarmOptimization {
 
 	class Particle;
 	class Topology;
+	class InertiaScaling;
 
 	class Manager {
 		friend class Particle;
@@ -30,6 +31,7 @@ namespace ParticleSwarmOptimization {
 		Position getEstimate() const;
 
 		size_t numParticles() const;
+		size_t numIterations() const;
 
 		const Particle& particle(const ParticleId pid) const;
 
@@ -39,14 +41,17 @@ namespace ParticleSwarmOptimization {
 		void disableMaxSpeedPerDimension();
 		bool isEnabledMaxSpeedPerDimension() const;
 
-		void resetParticles();
-		
+		void reset();
+
+		size_t iteration() const;
+
 	protected:
+		void resetParticles();
+
 		virtual void iterate ();
 
 		bool keepLooping();
 
-		size_t iteration() const;
 		
 		// This should evaluate a fitness function, e.g. z = f(x,y)
 		virtual std::vector<Fitness> evaluateFunction (const std::vector<Position>& positions ) = 0;
@@ -59,8 +64,9 @@ namespace ParticleSwarmOptimization {
 		const Position& socialBest (const Particle& asker );
 
 		Weight inertiaWeight() const;
+		/*
 		void setInertiaWeight(const Weight newWeight);
-
+		*/
 		Weight cognitiveWeight() const;
 		void setCognitiveWeight(const Weight newWeight);
 
@@ -86,7 +92,6 @@ namespace ParticleSwarmOptimization {
 		size_t mMaxIterations;
 		std::vector<Particle*> mParticles;
 
-		Weight mInertiaWeight;
 		Weight mSocialWeight;
 		Weight mCognitiveWeight;
 
@@ -95,6 +100,7 @@ namespace ParticleSwarmOptimization {
 		double mMaxSpeedPerDimension;
 		bool mIsEnabledMaxSpeedPerDimension;
 
+		InertiaScaling* mInertia;
 		Topology* mTopology;
 
 		RandomNumberGenerator* mRng;
