@@ -1,15 +1,16 @@
 #include <iostream>
 #include <stdexcept>
+#include <cstdlib>
 
 #include "pso.h"
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
 
-const size_t NUM_TRIALS = 10;
+const size_t NUM_TRIALS = 1000;
 const size_t NUM_DIMENSIONS = 2;
 const size_t NUM_PARTICLES = 20;
-const size_t MAX_ITERATIONS = 50;
+const size_t MAX_ITERATIONS = 10;
 
 const double RANGE = 4.0;
 const double TRUE_X = 2.9;
@@ -127,7 +128,7 @@ protected:
 	}
 
     void recordTrialEstimate(const ParticleSwarmOptimization::Position& estimate) {
-        std::cout << "Trial #" << trial() << " best is (" << estimate[0] << ", " << estimate[1] << ")\n";
+        std::cout << estimate[0] << " " << estimate[1] << std::endl;
     }
 
     void recordIterationEstimate(const ParticleSwarmOptimization::Position& estimate) {
@@ -156,12 +157,18 @@ private:
 	
 int main(int argc, char* argv[]) {
 	try {
+        if (argc != 2) {
+            throw std::runtime_error("Invalid arguments");
+        }
+
+        size_t arg_numIterations = atoi(argv[1]);
+
 		const gslseed_t seed = 0;
-		MyManager man( seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, MAX_ITERATIONS);
+		MyManager man( seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, arg_numIterations);
 		man.performAnalysis();
 		//ParticleSwarmOptimization::Position est = man.getEstimate();
-		std::cout << "true x = " << TRUE_X << "\n"; //<< ", and estimated x = " << est[0] << std::endl;
-		std::cout << "true y = " << TRUE_Y << "\n"; //, and estimated y = " << est[1] << std::endl;
+		//std::cout << "true x = " << TRUE_X << "\n"; //<< ", and estimated x = " << est[0] << std::endl;
+		//std::cout << "true y = " << TRUE_Y << "\n"; //, and estimated y = " << est[1] << std::endl;
 	} catch(const std::exception& e) {
 		std::cerr << "ERROR: " << e.what() << std::endl;
 		return -1;
