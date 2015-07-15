@@ -7,15 +7,24 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
 
-const size_t NUM_TRIALS = 1000;
+const size_t NUM_TRIALS = 10;
 const size_t NUM_DIMENSIONS = 2;
 const size_t NUM_PARTICLES = 20;
-const size_t MAX_ITERATIONS = 10;
+const size_t MAX_ITERATIONS = 100;
 
 const double RANGE = 4.0;
 const double TRUE_X = 2.9;
 const double TRUE_Y = -0.25;
 
+// Converts from pso coordinates to function coordinates
+// Specifically: PSO's [-1, 1] to  Func's [min, max]
+double convertPSOCoord(const double min, const double max, const double pso_coord) {
+    const double func_coord = 0.5*max*(1.0+pso_coord) + 0.5*min*(1.0-pso_coord);
+
+    return func_coord;
+}
+
+// The function whose minimum is to be estimated
 class AckleyFunction
 {
 public:
@@ -24,41 +33,32 @@ public:
     AckleyFunction(const double range = 1.0, const double muX = 0.0, const double muY = 0.0)
         : mRange(range), mTrueX(muX), mTrueY(muY)
     {
+        if(!test()) {
+            throw std::runtime_error("Test function failed self-diagnostic test.\n");
+        }
     }
 
-    bool test() const {
-    	if (
-    		(convert(-1.0) != -mRange) ||
-    		(convert(1.0) != mRange) ||
-    		(convert(0.0) != 0.0) ) {
-    		return false;
-    	}
-
-    	return true;
+    // Called by PRDAnalysis
+    ParticleSwarmOptimization::Position convertCoords(const ParticleSwarmOptimization::Position& psoCoord) const {
+        ParticleSwarmOptimization::Position funcCoord;
+        for (int i = 0; i < psoCoord.size(); i++) {
+            funcCoord.push_back( convert(psoCoord[i]) );
+        }
+        return funcCoord;
     }
 
-    double min() const {
-    	return -1.0*mRange;
+    // Called by PRDAnalysis
+    ParticleSwarmOptimization::Fitness operator()(const ParticleSwarmOptimization::Position& pos) const {
+        if (pos.size() != 2) {
+            throw std::runtime_error("ERROR: AckelyFunction requires only 2 coordinates");
+        }
+
+        return eval(pos[0], pos[1]);
     }
 
-    double max() const {
-    	return 1.0*mRange;
-    }
-
-    double convert(const double pso_coord) const {
-    	return convert(min(), max(), pso_coord);
-    }
-
-    // Converts pso coordinates to function coordinates
-    static double convert(const double min, const double max, const double pso_coord) {
-    	const double func_coord = 0.5*max*(1.0+pso_coord) + 0.5*min*(1.0-pso_coord);
-
-    	//std::cout << pso_coord << " -> " << func_coord << "\n";
-
-    	return func_coord;
-    }
-
-    double operator()(const double pso_x, const double pso_y) const
+protected:
+    // The actual function
+    double eval(const double pso_x, const double pso_y) const
     {
     	const double x = convert(pso_x);
     	const double y = convert(pso_y);
@@ -78,6 +78,30 @@ public:
         return (termOne + termTwo + termThree);
     }
 
+
+    double min() const {
+        return -1.0*mRange;
+    }
+
+    double max() const {
+        return 1.0*mRange;
+    }
+
+    double convert(const double pso_coord) const {
+        return convertPSOCoord(min(), max(), pso_coord);
+    }
+
+    bool test() const {
+        if (
+            (convert(-1.0) != -mRange) ||
+            (convert(1.0) != mRange) ||
+            (convert(0.0) != 0.0) ) {
+            return false;
+        }
+
+        return true;
+    }
+
 private:
     double mTrueX;
     double mTrueY;
@@ -85,32 +109,37 @@ private:
 };
 
 
-class MyManager : private ParticleSwarmOptimization::Manager {
-public:
-	MyManager(const gslseed_t seed, const size_t numTrials, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
-	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations), mNumTrials(numTrials),
-	  mTestFunction(RANGE,TRUE_X, TRUE_Y) {
-	  	if(!mTestFunction.test()) {
-	  		throw std::runtime_error("Test function failed self-diagnostic test.\n");
-	  	}
 
+// Performs the PRD analysis.
+// Runs many trials to obtain statistics for one model system
+template<typename FitnessFunction>
+class PRDAnalysis : private ParticleSwarmOptimization::Manager {
+public:
+	PRDAnalysis(FitnessFunction& ff, const gslseed_t seed, const size_t numTrials, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
+	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations), 
+      mFitnessFunction(ff), mNumTrials(numTrials) {
         mCurrentTrial = 0;
 	}
 
-	void performAnalysis() {
+	void perform() {
         for (mCurrentTrial = 0; mCurrentTrial < mNumTrials; mCurrentTrial++) {
-            ParticleSwarmOptimization::Manager::reset();
-            ParticleSwarmOptimization::Manager::estimate();
-            ParticleSwarmOptimization::Position estimate = getEstimate();
-            recordTrialEstimate( estimate );
+            performTrial();
         }
 	}
 
 protected:
+    void performTrial() {
+        // Perform a trial
+        ParticleSwarmOptimization::Manager::reset();
+        ParticleSwarmOptimization::Manager::estimate();
+        ParticleSwarmOptimization::Position estimate = getEstimate();
+        recordTrialEstimate( estimate );
+    }
+
     ParticleSwarmOptimization::Position getEstimate() const {
         ParticleSwarmOptimization::Position pos = ParticleSwarmOptimization::Manager::getEstimate();
-        pos[0] = mTestFunction.convert(pos[0]);
-        pos[1] = mTestFunction.convert(pos[1]);
+        // Convert from PSO coordinates to Function coordinates
+        pos = mFitnessFunction.convertCoords(pos);
         return pos;
     }
 
@@ -139,18 +168,14 @@ protected:
 	virtual std::vector<ParticleSwarmOptimization::Fitness> evaluateFunction(const std::vector<ParticleSwarmOptimization::Position>& positions) {
 		std::vector<ParticleSwarmOptimization::Fitness> fitnesses;
 		for (size_t i = 0; i < positions.size(); i++) {
-			fitnesses.push_back( f_of_x( positions[i] ) );
+			fitnesses.push_back( mFitnessFunction( positions[i] ) );
 		}
 
 		return fitnesses;
 	}
 
-    ParticleSwarmOptimization::Fitness f_of_x (const ParticleSwarmOptimization::Position& pos) {
-		return mTestFunction(pos[0], pos[1]);
-	}
-
 private:
-	AckleyFunction mTestFunction;
+	FitnessFunction mFitnessFunction;
     size_t mNumTrials;
     size_t mCurrentTrial;
 };
@@ -163,12 +188,13 @@ int main(int argc, char* argv[]) {
 
         size_t arg_numIterations = atoi(argv[1]);
 
+        AckleyFunction ff(RANGE,TRUE_X, TRUE_Y);
+
 		const gslseed_t seed = 0;
-		MyManager man( seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, arg_numIterations);
-		man.performAnalysis();
-		//ParticleSwarmOptimization::Position est = man.getEstimate();
-		//std::cout << "true x = " << TRUE_X << "\n"; //<< ", and estimated x = " << est[0] << std::endl;
-		//std::cout << "true y = " << TRUE_Y << "\n"; //, and estimated y = " << est[1] << std::endl;
+		PRDAnalysis<AckleyFunction> analysis(ff, seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, arg_numIterations);
+
+		analysis.perform();
+		std::cout << "true: " << TRUE_X << " " << TRUE_Y << "\n";
 	} catch(const std::exception& e) {
 		std::cerr << "ERROR: " << e.what() << std::endl;
 		return -1;
