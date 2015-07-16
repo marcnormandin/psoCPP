@@ -115,20 +115,20 @@ private:
 template<typename FitnessFunction>
 class PRDAnalysis : private ParticleSwarmOptimization::Manager {
 public:
-	PRDAnalysis(FitnessFunction& ff, const gslseed_t seed, const size_t numTrials, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
+	PRDAnalysis(FitnessFunction& ff, const gslseed_t seed, const size_t numPSOTrials, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
 	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations), 
-      mFitnessFunction(ff), mNumTrials(numTrials) {
-        mCurrentTrial = 0;
+      mFitnessFunction(ff), mNumPSOTrials(numPSOTrials) {
+        mCurrentPSOTrial = 0;
 	}
 
 	void perform() {
-        for (mCurrentTrial = 0; mCurrentTrial < mNumTrials; mCurrentTrial++) {
-            performTrial();
+        for (mCurrentPSOTrial = 0; mCurrentPSOTrial < mNumPSOTrials; mCurrentPSOTrial++) {
+            performPSOTrial();
         }
 	}
 
 protected:
-    void performTrial() {
+    void performPSOTrial() {
         // Perform a trial
         ParticleSwarmOptimization::Manager::reset();
         ParticleSwarmOptimization::Manager::estimate();
@@ -144,7 +144,7 @@ protected:
     }
 
     size_t trial() const {
-        return mCurrentTrial;
+        return mCurrentPSOTrial;
     }
 
 	virtual void iterate () {
@@ -176,8 +176,8 @@ protected:
 
 private:
 	FitnessFunction mFitnessFunction;
-    size_t mNumTrials;
-    size_t mCurrentTrial;
+    size_t mNumPSOTrials;
+    size_t mCurrentPSOTrial;
 };
 	
 int main(int argc, char* argv[]) {
