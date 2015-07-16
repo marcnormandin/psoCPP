@@ -38,7 +38,7 @@ public:
         }
     }
 
-    // Called by PRDAnalysis
+    // Called by PSOAnalysis
     ParticleSwarmOptimization::Position convertCoords(const ParticleSwarmOptimization::Position& psoCoord) const {
         ParticleSwarmOptimization::Position funcCoord;
         for (int i = 0; i < psoCoord.size(); i++) {
@@ -47,7 +47,7 @@ public:
         return funcCoord;
     }
 
-    // Called by PRDAnalysis
+    // Called by PSOAnalysis
     ParticleSwarmOptimization::Fitness operator()(const ParticleSwarmOptimization::Position& pos) const {
         if (pos.size() != 2) {
             throw std::runtime_error("ERROR: AckelyFunction requires only 2 coordinates");
@@ -109,31 +109,144 @@ private:
 };
 
 
+// The function whose minimum is to be estimated
+
+
+class IterationResult {
+public:
+    IterationResult(const ParticleSwarmOptimization::Position& pos, const ParticleSwarmOptimization::Fitness fitness)
+    : mPos(pos), mFitness(fitness)
+    {
+
+    }
+
+    const ParticleSwarmOptimization::Position& getPosition() const {
+        return mPos;
+    }
+
+    const ParticleSwarmOptimization::Fitness getFitness() const {
+        return mFitness;
+    }
+
+private:
+    ParticleSwarmOptimization::Position  mPos;
+    ParticleSwarmOptimization::Fitness   mFitness;
+};
+
+class TrialResult {
+public:
+    TrialResult() {
+
+    }
+
+    void clear() {
+        mIterationResult.clear();
+    }
+
+    void add( const IterationResult& iterationResult ) {
+        mIterationResult.push_back( iterationResult );
+    }
+
+    int getNumIterations() const {
+        return mIterationResult.size();
+    }
+
+    const IterationResult& getIterationResult (const int index) const {
+        return mIterationResult.at (index);
+    }
+
+    const IterationResult& getBestResult() const {
+        return mIterationResult.back();
+    }
+
+private:
+    std::vector<IterationResult> mIterationResult;
+};
+
+class PSOResult {
+public:
+    void clear() {
+        mTrialResult.clear();
+    }
+
+    void add (const TrialResult& trialResult ) {
+        mTrialResult.push_back (trialResult);
+    }
+
+    const TrialResult& getTrialResult (const int index) const {
+        return mTrialResult.at (index);
+    }
+
+    int getNumTrialResults() const {
+        return mTrialResult.size();
+    }
+
+    double getFitness() const {
+        const TrialResult& bestTrial = getBestTrial();
+        const IterationResult& bestIteration = bestTrial.getBestResult();
+        return bestIteration.getFitness();
+    }
+
+    const ParticleSwarmOptimization::Position& getEstimate() const {
+        const TrialResult& bestTrial = getBestTrial();
+        const IterationResult& bestIteration = bestTrial.getBestResult();
+        return bestIteration.getPosition();
+    }
+
+    const TrialResult& getBestTrial() const {
+        int bestIndex = 0;
+        ParticleSwarmOptimization::Fitness bestFitness = getTrialResult(0).getBestResult().getFitness();
+
+        for (int i = 1; i < mTrialResult.size(); i++) {
+            ParticleSwarmOptimization::Fitness f = getTrialResult(i).getBestResult().getFitness();
+            if (f > bestFitness) {
+                bestIndex = i;
+                bestFitness = f;
+            }
+        }
+
+        return getTrialResult (bestIndex);
+    }
+
+private:
+    std::vector<TrialResult> mTrialResult;
+};
+
 
 // Performs the PRD analysis.
 // Runs many trials to obtain statistics for one model system
 template<typename FitnessFunction>
-class PRDAnalysis : private ParticleSwarmOptimization::Manager {
+class PSOAnalysis : private ParticleSwarmOptimization::Manager {
 public:
-	PRDAnalysis(FitnessFunction& ff, const gslseed_t seed, const size_t numPSOTrials, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
-	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, maxIterations), 
+	PSOAnalysis(FitnessFunction& ff, const gslseed_t seed, const size_t numPSOTrials, const size_t numDimensions, const size_t numParticles, const size_t numIterations,
+    const ParticleSwarmOptimization::Weight inertiaStart, const ParticleSwarmOptimization::Weight inertiaEnd, const ParticleSwarmOptimization::Weight cognitive, const ParticleSwarmOptimization::Weight social )
+	: ParticleSwarmOptimization::Manager(seed, numDimensions, numParticles, numIterations,
+        inertiaStart, inertiaEnd, cognitive, social), 
       mFitnessFunction(ff), mNumPSOTrials(numPSOTrials) {
         mCurrentPSOTrial = 0;
 	}
 
-	void perform() {
+	PSOResult& perform() {
+        mPSOResult.clear();
+
         for (mCurrentPSOTrial = 0; mCurrentPSOTrial < mNumPSOTrials; mCurrentPSOTrial++) {
             performPSOTrial();
         }
+
+        return mPSOResult;
 	}
 
 protected:
     void performPSOTrial() {
+        mCurrentTrialResult.clear();
+
         // Perform a trial
         ParticleSwarmOptimization::Manager::reset();
         ParticleSwarmOptimization::Manager::estimate();
-        ParticleSwarmOptimization::Position estimate = getEstimate();
-        recordTrialEstimate( estimate );
+        ParticleSwarmOptimization::Position estimate = this->getEstimate();
+        ParticleSwarmOptimization::Fitness fitness = this->getFitness();
+        
+        recordTrialEstimate( estimate, fitness );
     }
 
     ParticleSwarmOptimization::Position getEstimate() const {
@@ -141,6 +254,10 @@ protected:
         // Convert from PSO coordinates to Function coordinates
         pos = mFitnessFunction.convertCoords(pos);
         return pos;
+    }
+
+    ParticleSwarmOptimization::Fitness getFitness() const {
+        return ParticleSwarmOptimization::Manager::getFitness();
     }
 
     size_t trial() const {
@@ -153,15 +270,19 @@ protected:
 		// Get the best estimate for this iteration step
 		ParticleSwarmOptimization::Position estimate = this->getEstimate();
 
-        recordIterationEstimate(estimate);
+        // Get the fitness for the best estimate
+        ParticleSwarmOptimization::Fitness fitness = this->getFitness();
+
+        recordIterationEstimate(estimate, fitness);
 	}
 
-    void recordTrialEstimate(const ParticleSwarmOptimization::Position& estimate) {
-        std::cout << estimate[0] << " " << estimate[1] << std::endl;
+    void recordTrialEstimate(const ParticleSwarmOptimization::Position& estimate, const ParticleSwarmOptimization::Fitness& fitness) {
+        mPSOResult.add (mCurrentTrialResult);
+        std::cout << "(" << estimate[0] << ", " << estimate[1] << ") = " << fitness << std::endl;
     }
 
-    void recordIterationEstimate(const ParticleSwarmOptimization::Position& estimate) {
-        //std::cout << "Iteration #" << iteration() << " best is (" << estimate[0] << ", " << estimate[1] << ")\n";
+    void recordIterationEstimate(const ParticleSwarmOptimization::Position& estimate, const ParticleSwarmOptimization::Fitness& fitness) {
+        mCurrentTrialResult.add( IterationResult(estimate,fitness) );
     }
 
 	// The manager calls this function for each interation of the PSO estimation procedure.
@@ -176,8 +297,11 @@ protected:
 
 private:
 	FitnessFunction mFitnessFunction;
-    size_t mNumPSOTrials;
-    size_t mCurrentPSOTrial;
+    size_t          mNumPSOTrials;
+    size_t          mCurrentPSOTrial;
+
+    PSOResult       mPSOResult;
+    TrialResult     mCurrentTrialResult;
 };
 	
 int main(int argc, char* argv[]) {
@@ -191,9 +315,10 @@ int main(int argc, char* argv[]) {
         AckleyFunction ff(RANGE,TRUE_X, TRUE_Y);
 
 		const gslseed_t seed = 0;
-		PRDAnalysis<AckleyFunction> analysis(ff, seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, arg_numIterations);
+		PSOAnalysis<AckleyFunction> pso(ff, seed, NUM_TRIALS, NUM_DIMENSIONS, NUM_PARTICLES, arg_numIterations,
+            0.9, 0.9, 0.2, 0.2);
 
-		analysis.perform();
+		pso.perform();
 		std::cout << "true: " << TRUE_X << " " << TRUE_Y << "\n";
 	} catch(const std::exception& e) {
 		std::cerr << "ERROR: " << e.what() << std::endl;

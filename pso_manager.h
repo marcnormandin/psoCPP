@@ -20,7 +20,13 @@ namespace ParticleSwarmOptimization {
 		friend class Particle;
 
 	public:
-		Manager (const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations );
+		// Standard PSO
+		Manager (const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t numIterations );
+
+		// Linear PSO
+		Manager (const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t numIterations,
+		 const Weight inertiaStart, const Weight inertiaEnd, const Weight cognitive, const Weight social);
+
 
 		virtual ~Manager ();
 
@@ -29,6 +35,7 @@ namespace ParticleSwarmOptimization {
 		void estimate ();
 
 		Position getEstimate() const;
+		Fitness  getFitness() const;
 
 		size_t numParticles() const;
 		size_t numIterations() const;
@@ -89,7 +96,7 @@ namespace ParticleSwarmOptimization {
 		void operator=(const Manager&);
 		
 		size_t mNumDimensions;
-		size_t mMaxIterations;
+		size_t mNumIterations;
 		std::vector<Particle*> mParticles;
 
 		Weight mSocialWeight;

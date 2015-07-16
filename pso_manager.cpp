@@ -26,8 +26,8 @@ namespace ParticleSwarmOptimization {
 	};
 
 
-	Manager::Manager ( const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t maxIterations )
-	: mNumDimensions(numDimensions), mMaxIterations(maxIterations), mIterationCount(0), mInertia(0) {
+	Manager::Manager ( const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t numIterations )
+	: mNumDimensions(numDimensions), mNumIterations(numIterations), mIterationCount(0), mInertia(0) {
 		mRng = new RandomNumberGenerator( seed );
 
 		mTopology = new RingTopology (this);
@@ -40,6 +40,24 @@ namespace ParticleSwarmOptimization {
 
 		// default settings
 		loadStandardWeights();
+		setMaxSpeedPerDimension(0.5);
+		enableMaxSpeedPerDimension();
+
+		createParticles( numParticles );
+	}
+
+	Manager::Manager (const gslseed_t seed, const size_t numDimensions, const size_t numParticles, const size_t numIterations,
+		 const Weight inertiaStart, const Weight inertiaEnd, const Weight cognitive, const Weight social)
+	: mNumDimensions(numDimensions), mNumIterations(numIterations), mIterationCount(0), mInertia(0) {
+		mRng = new RandomNumberGenerator( seed );
+
+		mTopology = new RingTopology (this);
+
+		mInertia = new LinearInertiaScaling(this, inertiaStart, inertiaEnd);
+		setCognitiveWeight(cognitive);
+		setSocialWeight(social);
+
+		// default speed settings
 		setMaxSpeedPerDimension(0.5);
 		enableMaxSpeedPerDimension();
 
@@ -106,13 +124,18 @@ namespace ParticleSwarmOptimization {
 		return p->best().position;
 	}
 
+	Fitness Manager::getFitness() const {
+		const Particle* p = *std::min_element(mParticles.begin(), mParticles.end(), ParticleBestFitnessCmpp());
+		return p->best().fitness;
+	}
+
 
 	size_t Manager::numParticles() const {
 		return mParticles.size();
 	}
 	
 	size_t Manager::numIterations() const {
-		return mMaxIterations;
+		return mNumIterations;
 	}
 
 	const Particle& Manager::particle(const ParticleId pid) const {
@@ -133,7 +156,7 @@ namespace ParticleSwarmOptimization {
 	}
 
 	bool Manager::keepLooping() {
-		return (mIterationCount < mMaxIterations);
+		return (mIterationCount < mNumIterations);
 	}
 
 	size_t Manager::iteration() const {
