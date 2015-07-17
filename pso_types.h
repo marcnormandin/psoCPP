@@ -1,6 +1,7 @@
 #ifndef INC_PSO_TYPES_H
 #define INC_PSO_TYPES_H
 
+#include <cstddef>
 #include <vector>
 
 namespace ParticleSwarmOptimization {
