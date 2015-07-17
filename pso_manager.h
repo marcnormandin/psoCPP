@@ -61,7 +61,7 @@ namespace ParticleSwarmOptimization {
 
 		
 		// This should evaluate a fitness function, e.g. z = f(x,y)
-		virtual std::vector<Fitness> evaluateFunction (const std::vector<Position>& positions ) = 0;
+		virtual Fitnesses evaluateFunction (const Positions& positions ) = 0;
 
 		void updateParticleFitnesses ();
 

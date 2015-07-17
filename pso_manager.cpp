@@ -164,13 +164,13 @@ namespace ParticleSwarmOptimization {
 	}
 
 	void Manager::updateParticleFitnesses () {
-		std::vector<Position> positions;
+		Positions positions;
 		for (int i = 0; i < mParticles.size(); i++) {
 			positions.push_back( mParticles[i]->current().position );
 		}
 
 		// Call evaluate function for each particle's position, save the fitness
-		std::vector<Fitness> fitnesses = evaluateFunction( positions );
+		Fitnesses fitnesses = evaluateFunction( positions );
 
 		// Update the particle's new fitness value
 		for (int i = 0; i < fitnesses.size(); i++) {
