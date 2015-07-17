@@ -8,7 +8,10 @@ namespace ParticleSwarmOptimization {
 
 	Particle::State::State( const Position& p, const Velocity& v, const Fitness f )
 	: position(p), velocity(v), fitness( f ) {
-
+		// !Fixme This is ridiculous
+		if (f == -12345) {
+			fitness = WorstPossibleFitness();
+		}
 	}
 
 	Particle::Particle ( Manager* man, const Particle::State& initialState, const ParticleId id )
@@ -101,7 +104,7 @@ namespace ParticleSwarmOptimization {
 		if (!isPositionWithinBounds(current().position)) {
 			// !Fixme This should be an option from the Manager class
 			// Set it to the worst possible value
-			mCurrent.fitness = std::numeric_limits<Fitness>::max();
+			mCurrent.fitness = WorstPossibleFitness();
 		}
 
 		updateBest ();

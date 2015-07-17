@@ -48,7 +48,7 @@ public:
     }
 
     // Called by PSOAnalysis
-    ParticleSwarmOptimization::Fitness operator()(const ParticleSwarmOptimization::Position& pos) const {
+    ParticleSwarmOptimization::Fitness psoEval(const ParticleSwarmOptimization::Position& pos) const {
         if (pos.size() != 2) {
             throw std::runtime_error("ERROR: AckelyFunction requires only 2 coordinates");
         }
@@ -285,11 +285,12 @@ protected:
         mCurrentTrialResult.add( IterationResult(estimate,fitness) );
     }
 
-	// The manager calls this function for each interation of the PSO estimation procedure.
+    // PSO MANAGER CALLS THIS FUNCTION EACH ITERATION. 
+    // IT IS THE CONNECTION BETWEEN PSO AND REST OF THE CODE.
 	virtual ParticleSwarmOptimization::Fitnesses evaluateFunction(const ParticleSwarmOptimization::Positions& positions) {
 		std::vector<ParticleSwarmOptimization::Fitness> fitnesses;
 		for (size_t i = 0; i < positions.size(); i++) {
-			fitnesses.push_back( mFitnessFunction( positions[i] ) );
+			fitnesses.push_back( mFitnessFunction.psoEval( positions[i] ) );
 		}
 
 		return fitnesses;

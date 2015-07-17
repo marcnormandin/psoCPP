@@ -10,7 +10,8 @@ class Manager;
 class Particle {
 	public:
 		struct State {
-			State ( const Position& p, const Velocity& v, const Fitness f = std::numeric_limits<Fitness>::max() );
+			// !Fixme The magic number is a hack
+			State ( const Position& p, const Velocity& v, const Fitness f = -12345 );
 
 			Position position;
 			Velocity velocity;

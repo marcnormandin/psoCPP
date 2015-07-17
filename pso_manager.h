@@ -12,6 +12,9 @@ typedef unsigned long int gslseed_t;
 
 namespace ParticleSwarmOptimization {
 
+	// Returns the "worst possible" fitness, which is the maximum Fitness value possible
+	Fitness WorstPossibleFitness();
+
 	class Particle;
 	class Topology;
 	class InertiaScaling;

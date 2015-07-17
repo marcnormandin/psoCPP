@@ -13,8 +13,13 @@
 #include <iostream>
 
 #include <cstddef>
+#include <limits>
 
 namespace ParticleSwarmOptimization {
+
+	Fitness WorstPossibleFitness() {
+		return std::numeric_limits<Fitness>::max();
+	}
 
 	class ParticleBestFitnessCmpp {
 		public:
@@ -230,11 +235,6 @@ namespace ParticleSwarmOptimization {
 		return mInertia->weight();
 	}
 
-/*
-	void Manager::setInertiaWeight(const Weight newWeight) {
-		mInertiaWeight = newWeight;
-	}
-*/
 	Weight Manager::cognitiveWeight() const {
 		return mCognitiveWeight;
 	}
